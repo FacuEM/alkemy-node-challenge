@@ -12,4 +12,9 @@ npm install
 npm start
 ```
 
+```bash
+cd alkemy-node-challenge
+node seed.js
+```
+
 ---
