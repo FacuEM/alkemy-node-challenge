@@ -3,14 +3,8 @@ const { Movie, Character } = require("../models/");
 const movieController = {
   //
   fetchMovies(req, res) {
-    Movie.findAll()
-      .then((movie) =>
-        res.json(
-          movie.map((m) => {
-            return { title: m.title, image: m.image, date: m.date };
-          })
-        )
-      )
+    Movie.findAll({ attributes: ["title", "image", "date"] })
+      .then((movies) => res.json(movies))
       .catch((err) => res.status(401).send(err));
   },
   //
@@ -45,16 +39,13 @@ const movieController = {
   //
   fetchMovie(req, res) {
     const { id } = req.params;
-    Movie.findByPk(id)
-      .then((movie) =>
-        res.json({
-          title: movie.title,
-          image: movie.image,
-          date: movie.date,
-          score: movie.score,
-          genre: movie.genre,
-        })
-      )
+    Movie.findByPk(id, {
+      include: { model: Character, attributes: ["name"] },
+      attributes: ["title", "image", "date", "score", "genre"],
+    })
+      .then((movie) => {
+        res.json(movie);
+      })
       .catch((err) => res.status(401).send(err));
   },
   //
@@ -63,6 +54,8 @@ const movieController = {
     Movie.findAll({
       where: { title },
       order: [["date", order]],
+      include: { model: Character, attributes: ["name"] },
+      attributes: ["title", "image", "date", "score", "genre"],
     })
       .then((movie) => {
         if (genre) {

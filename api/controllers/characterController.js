@@ -3,13 +3,11 @@ const { Movie, Character } = require("../models/");
 const characterController = {
   //
   fetchCharacters(req, res) {
-    Character.findAll()
+    Character.findAll({
+      attributes: ["name", "image"],
+    })
       .then((character) => {
-        res.json(
-          character.map((ch) => {
-            return { name: ch.name, image: ch.image };
-          })
-        );
+        res.json(character);
       })
       .catch((err) => res.status(401).send(err));
   },
@@ -45,24 +43,23 @@ const characterController = {
   //
   fetchCharacter(req, res) {
     const { id } = req.params;
-    Character.findByPk(id)
-      .then((character) =>
-        res.json({
-          name: character.name,
-          image: character.image,
-          age: character.age,
-          weight: character.weight,
-          history: character.history,
-        })
-      )
+    Character.findByPk(id, {
+      include: { model: Movie, attributes: ["title"] },
+      attributes: ["name", "image", "age", "weight", "history"],
+    })
+      .then((character) => {
+        res.json(character);
+      })
       .catch((err) => res.status(401).send(err));
   },
   //
   fetchCharacterByName(req, res) {
-    const { name, age, weight } = req.query;
+    const { name, age, weight, movieTitle } = req.query;
 
     Character.findAll({
       where: { name },
+      include: { model: Movie, attributes: ["title"] },
+      attributes: ["name", "image", "age", "weight", "history"],
     })
       .then((character) => {
         if (age) {
@@ -71,7 +68,13 @@ const characterController = {
         if (weight) {
           character = character.filter((ch) => +ch.weight === +weight);
         }
+        /* if (movieTitle) {
+          let moviesFiltered = character.map((ch) =>
+            ch.Movies.filter((m) => m.title === movieTitle)
+          );
 
+          character = character.filter((ch) => ch.Movies === moviesFiltered[0]);
+        } */
         res.json(character);
       })
       .catch((err) => res.status(401).send(err));
